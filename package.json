@@ -1,0 +1,21 @@
+{
+  "name": "yelo-copilot-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --loader ./scripts/alias-loader.mjs --test tests/*.test.mjs",
+    "index:build": "node scripts/build-index.mjs",
+    "eval:run": "node scripts/run-eval.mjs"
+  },
+  "dependencies": {
+    "mysql2": "^3.12.0",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

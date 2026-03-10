@@ -1,0 +1,22 @@
+[
+  {
+    "id": "arch-1",
+    "mode": "architecture",
+    "question": "Which module handles /payment/getPaymentUrl in yelo-server and what service path is involved?"
+  },
+  {
+    "id": "flow-1",
+    "mode": "flow",
+    "question": "In yelo-dashboard-angular, where is api_url configured and how does that connect to yelo-server endpoints?"
+  },
+  {
+    "id": "flow-2",
+    "mode": "flow",
+    "question": "In yelo-marketplace-webapp, where is SOCKET_ENDPOINT configured and how does it relate to backend flows?"
+  },
+  {
+    "id": "sql-1",
+    "mode": "sql",
+    "question": "Write a safe SELECT query pattern to inspect latest orders with pagination and index considerations."
+  }
+]

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { assertApiKey } from '@/lib/auth/guard';
 import { runPreflight } from '@/lib/chat/preflight';
+import { resolveLLMRuntime } from '@/lib/llm/runtime';
 
 export async function POST(request) {
   if (!assertApiKey(request)) {
@@ -13,12 +14,13 @@ export async function POST(request) {
     const prompt = body.prompt || '';
     const sql = body.sql || '';
     const selectedTables = Array.isArray(body.selectedTables) ? body.selectedTables : [];
+    const llmRuntime = resolveLLMRuntime({ request, body });
 
     if (!prompt) {
       return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
     }
 
-    const out = await runPreflight({ mode, prompt, sql, selectedTables });
+    const out = await runPreflight({ mode, prompt, sql, selectedTables, llmRuntime });
     return NextResponse.json(out);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

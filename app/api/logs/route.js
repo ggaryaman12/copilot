@@ -11,12 +11,24 @@ function tryParseJson(line) {
   }
 }
 
+function filterSince(items, sinceRaw) {
+  if (!sinceRaw) return items;
+  const sinceTs = Date.parse(sinceRaw);
+  if (Number.isNaN(sinceTs)) return items;
+  return items.filter((item) => {
+    if (!item?.ts) return false;
+    const itemTs = Date.parse(String(item.ts));
+    return !Number.isNaN(itemTs) && itemTs >= sinceTs;
+  });
+}
+
 export async function GET(request) {
   if (!assertApiKey(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const limitRaw = request.nextUrl.searchParams.get('limit');
+  const sinceRaw = request.nextUrl.searchParams.get('since');
   const limit = Number.parseInt(limitRaw || '120', 10);
   const auditPath = path.resolve(process.cwd(), 'data/audit.log');
   const runtimePath = getRuntimeLogPath();
@@ -26,10 +38,10 @@ export async function GET(request) {
     readTailLines(runtimePath, limit)
   ]);
 
-  return NextResponse.json({
-    audit: auditLines.map(tryParseJson),
-    runtime: runtimeLines.map(tryParseJson)
-  });
+  const audit = filterSince(auditLines.map(tryParseJson), sinceRaw);
+  const runtime = filterSince(runtimeLines.map(tryParseJson), sinceRaw);
+
+  return NextResponse.json({ audit, runtime });
 }
 
 export async function DELETE(request) {

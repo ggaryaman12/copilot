@@ -1,19 +1,22 @@
 import { NextResponse } from 'next/server';
 import { env, getMissingDbEnvKeys } from '@/lib/config/env';
-import { getOllamaModels } from '@/lib/ollama/client';
+import { getProviderHealth } from '@/lib/llm/client';
+import { resolveLLMRuntime } from '@/lib/llm/runtime';
 
-export async function GET() {
+export async function GET(request) {
+  const llmRuntime = resolveLLMRuntime({ request });
   const ts = new Date().toISOString();
   const out = {
     ok: true,
     service: 'yelo-copilot-platform',
     ts,
     checks: {
-      ollama: {
+      llm: {
         ok: false,
-        baseUrl: env.ollamaBaseUrl,
-        generateModel: env.ollamaGenerateModel,
-        embedModel: env.ollamaEmbedModel,
+        provider: llmRuntime.provider,
+        baseUrl: llmRuntime.provider === 'gemini' ? llmRuntime.gemini.baseUrl : llmRuntime.ollama.baseUrl,
+        generateModel: llmRuntime.provider === 'gemini' ? llmRuntime.gemini.model : llmRuntime.ollama.model,
+        embedModel: llmRuntime.provider === 'gemini' ? llmRuntime.gemini.embedModel : llmRuntime.ollama.embedModel,
         availableModels: [],
         missingGenerateModel: false,
         missingEmbedModel: false
@@ -26,14 +29,15 @@ export async function GET() {
   };
 
   try {
-    const names = await getOllamaModels();
-    out.checks.ollama.availableModels = names;
-    out.checks.ollama.ok = true;
-    out.checks.ollama.missingGenerateModel = !names.includes(env.ollamaGenerateModel);
-    out.checks.ollama.missingEmbedModel = !names.includes(env.ollamaEmbedModel);
+    const llmHealth = await getProviderHealth(llmRuntime);
+    out.checks.llm = {
+      ...out.checks.llm,
+      ...llmHealth
+    };
+    out.ok = Boolean(out.ok && out.checks.llm.ok);
   } catch (error) {
     out.ok = false;
-    out.checks.ollama.error = error.message;
+    out.checks.llm.error = error.message;
   }
 
   return NextResponse.json(out);

@@ -3,6 +3,7 @@ import { assertApiKey } from '@/lib/auth/guard';
 import { runAgent } from '@/lib/chat/engine';
 import { hashText, writeAuditLog } from '@/lib/audit/logger';
 import { writeRuntimeLog } from '@/lib/logging/runtime';
+import { resolveLLMRuntime } from '@/lib/llm/runtime';
 
 export async function POST(request) {
   if (!assertApiKey(request)) {
@@ -18,12 +19,13 @@ export async function POST(request) {
     const sql = body.sql || '';
     const selectedTables = Array.isArray(body.selectedTables) ? body.selectedTables : [];
     const tableAck = Boolean(body.tableAck);
+    const llmRuntime = resolveLLMRuntime({ request, body });
 
     if (!prompt) {
       return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
     }
 
-    const out = await runAgent({ mode, prompt, sql, selectedTables, tableAck });
+    const out = await runAgent({ mode, prompt, sql, selectedTables, tableAck, llmRuntime });
 
     const auditId = await writeAuditLog({
       sessionId,
@@ -51,7 +53,11 @@ export async function POST(request) {
       tablePlan: out.tablePlan,
       columnPlan: out.columnPlan,
       trace: out.trace || [],
-      clarifyingQuestions: out.clarifyingQuestions || []
+      clarifyingQuestions: out.clarifyingQuestions || [],
+      llm: {
+        provider: llmRuntime.provider,
+        model: llmRuntime.provider === 'gemini' ? llmRuntime.gemini.model : llmRuntime.ollama.model
+      }
     });
   } catch (error) {
     await writeRuntimeLog('error', 'chat_route_failed', {

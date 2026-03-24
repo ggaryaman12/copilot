@@ -49,6 +49,13 @@ This platform is an internal engineering copilot for YELO teams. It:
   - safe `SELECT` execution
   - `EXPLAIN` support
   - mutating SQL blocked
+- Order-list AI (Phase 1):
+  - dedicated endpoint at `POST /api/order-list-ai`
+  - page-scoped context from `data/context/order-list-context.json`
+  - Ollama/Gemini used only for NL -> validated order filter plan
+  - SQL built in code and executed read-only against scoped order tables
+  - supports customer id, order/job id, marketplace user id, amount, date range, status, store name
+  - rejects unsupported analytics/aggregation prompts with hard error
 - DB memory snapshot:
   - captures full schema + yelo-server table hints
   - stores memory at `data/memory/schema-memory.json`
@@ -101,6 +108,7 @@ npm run eval:run
 - `OLLAMA_BASE_URL` (default `http://localhost:11434`)
 - `OLLAMA_GENERATE_MODEL` (default `minimax-m2.5:cloud`)
 - `OLLAMA_EMBED_MODEL` (default `minimax-m2.5:cloud`)
+- `COPILOT_ALLOWED_ORIGINS`
 - `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_GENERATE_MODEL`, `GEMINI_EMBED_MODEL`
 - `REPO_SCOPE_PATHS`
 - `RAG_TOP_K`, `RAG_CHUNK_LINES`, `RAG_CHUNK_OVERLAP`
@@ -111,6 +119,7 @@ npm run eval:run
 ## Main Endpoints
 
 - `POST /api/chat`
+- `POST /api/order-list-ai`
 - `POST /api/retrieval/search`
 - `GET /api/db/schema`
 - `POST /api/db/query`
@@ -127,6 +136,7 @@ npm run eval:run
 - If embedding model is unavailable, retrieval falls back to lexical mode (no 500 crash).
 - Audit logs are appended to `data/audit.log` as JSON lines.
 - Learned memory is durable on disk. Restarting the app does not remove confirmed mappings unless `data/memory/learned-memory.json` is edited or deleted.
+- Page-specific training context can live outside model weights. Order List AI uses `data/context/order-list-context.json` as its durable scoped knowledge base.
 
 ## Training Roadmap
 

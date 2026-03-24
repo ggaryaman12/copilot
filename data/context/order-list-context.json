@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "name": "dashboard-order-list",
+  "description": "Scoped context for dashboard order list AI. Use only for read-only order list filtering and retrieval.",
+  "entity": "orders",
+  "tables": {
+    "jobs": "tb_jobs",
+    "payments": "tb_job_payment_details",
+    "storefronts": "tb_marketplace_storefronts"
+  },
+  "joins": [
+    {
+      "left": "tb_jobs.job_id",
+      "right": "tb_job_payment_details.job_id",
+      "type": "left"
+    },
+    {
+      "left": "tb_jobs.user_id",
+      "right": "tb_marketplace_storefronts.user_id",
+      "type": "left"
+    }
+  ],
+  "scope": {
+    "admin_manager_marketplace_column": "tb_jobs.marketplace_user_id"
+  },
+  "columns": {
+    "job_id": "tb_jobs.job_id",
+    "order_id": "tb_jobs.order_id",
+    "customer_id": "tb_jobs.customer_id",
+    "marketplace_user_id": "tb_jobs.marketplace_user_id",
+    "merchant_user_id": "tb_jobs.user_id",
+    "job_status": "tb_jobs.job_status",
+    "created_by": "tb_jobs.created_by",
+    "creation_datetime": "tb_jobs.creation_datetime",
+    "job_delivery_datetime": "tb_jobs.job_delivery_datetime",
+    "customer_username": "tb_jobs.customer_username",
+    "job_pickup_name": "tb_jobs.job_pickup_name",
+    "job_pickup_address": "tb_jobs.job_pickup_address",
+    "delivery_method": "tb_jobs.delivery_method",
+    "total_amount": "tb_job_payment_details.total_amount",
+    "payment_type": "tb_job_payment_details.payment_type",
+    "overall_transaction_status": "tb_job_payment_details.overall_transaction_status",
+    "merchant_name": "tb_marketplace_storefronts.store_name",
+    "store_name": "tb_marketplace_storefronts.store_name",
+    "storefront_user_id": "tb_marketplace_storefronts.user_id"
+  },
+  "selectColumns": [
+    "j.job_id",
+    "j.order_id",
+    "j.customer_id",
+    "j.customer_username",
+    "j.job_pickup_name",
+    "j.job_pickup_address AS address",
+    "j.marketplace_user_id",
+    "j.user_id",
+    "j.job_status",
+    "j.created_by",
+    "j.creation_datetime",
+    "j.job_delivery_datetime",
+    "j.delivery_method",
+    "IFNULL(tjpd.payment_type, 8) AS payment_type",
+    "IFNULL(tjpd.total_amount, 0) AS total_amount",
+    "tjpd.overall_transaction_status",
+    "tms.store_name AS merchant_name",
+    "tms.user_id AS storefront_user_id"
+  ],
+  "allowedFilters": [
+    "customer_id",
+    "job_id",
+    "order_id",
+    "marketplace_user_id",
+    "created_by",
+    "total_amount",
+    "creation_datetime",
+    "job_status",
+    "store_name"
+  ],
+  "allowedOperators": [
+    "eq",
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+    "between",
+    "starts_with",
+    "contains"
+  ],
+  "statusMap": {
+    "pending": 9,
+    "new": 9,
+    "ordered": 10,
+    "accepted": 11,
+    "dispatched": 12,
+    "ongoing": 12,
+    "completed": 13,
+    "rejected": 14,
+    "cancelled": 15,
+    "canceled": 15
+  },
+  "deviceMap": {
+    "android": [10, 14],
+    "ios": [11, 13],
+    "web": [12],
+    "webapp": [12],
+    "website": [12]
+  },
+  "unsupportedKeywords": [
+    "sum",
+    "average",
+    "avg",
+    "count by",
+    "group by",
+    "revenue",
+    "why",
+    "reason",
+    "trend",
+    "analytics",
+    "graph"
+  ],
+  "examples": [
+    {
+      "prompt": "find me all the orders where order amount is greater than 3000",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          { "field": "total_amount", "operator": "gt", "value": 3000 }
+        ]
+      }
+    },
+    {
+      "prompt": "find me the orders from customer id 300",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          { "field": "customer_id", "operator": "eq", "value": 300 }
+        ]
+      }
+    },
+    {
+      "prompt": "find me completed orders from 1 feb to 28 feb",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          { "field": "job_status", "operator": "eq", "value": 13 },
+          { "field": "creation_datetime", "operator": "between", "value": ["2026-02-01 00:00:00", "2026-03-01 00:00:00"] }
+        ]
+      }
+    }
+  ],
+  "indexHints": [
+    "Always lead with marketplace_user_id scope.",
+    "Use creation_datetime for time filters.",
+    "Use created_by for web/android/ios source filters.",
+    "Use exact match for IDs and status.",
+    "Use total_amount from payment details join only when requested.",
+    "Cap reads to configured row limit."
+  ]
+}

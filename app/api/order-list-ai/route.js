@@ -12,6 +12,52 @@ function badRequest(message, request, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status, headers: buildCorsHeaders(request) });
 }
 
+async function resolveCustomerReferenceFilters(plan, context, marketplaceUserId) {
+  const filters = Array.isArray(plan?.filters) ? plan.filters : [];
+  const resolvedFilters = [];
+
+  for (const filter of filters) {
+    if (filter.field !== 'customer_email' && filter.field !== 'customer_phone') {
+      resolvedFilters.push(filter);
+      continue;
+    }
+
+    const column = filter.field === 'customer_email' ? 'email' : 'phone_no';
+    const lookupSql = [
+      `SELECT vendor_id FROM ${context.tables.vendors}`,
+      `WHERE ${column} = ? AND marketplace_user_id = ? AND is_deleted = 0`,
+      'LIMIT 1'
+    ].join('\n');
+    const lookupValues = [filter.value, Number(marketplaceUserId)];
+    const lookup = await runSelectQueryWithValues(lookupSql, lookupValues);
+    const vendorId = Number(lookup?.rows?.[0]?.vendor_id || 0);
+
+    if (!vendorId) {
+      return {
+        empty: true,
+        plan: {
+          ...plan,
+          filters: resolvedFilters
+        }
+      };
+    }
+
+    resolvedFilters.push({
+      field: 'customer_id',
+      operator: 'eq',
+      value: vendorId
+    });
+  }
+
+  return {
+    empty: false,
+    plan: {
+      ...plan,
+      filters: resolvedFilters
+    }
+  };
+}
+
 export async function OPTIONS(request) {
   return new NextResponse(null, { status: 204, headers: buildCorsHeaders(request) });
 }
@@ -56,9 +102,30 @@ export async function POST(request) {
       );
     }
 
+    const resolved = await resolveCustomerReferenceFilters(planned.plan, context, marketplaceUserId);
+    if (resolved.empty) {
+      return NextResponse.json(
+        {
+          ok: true,
+          summary: summarizeAppliedFilters(resolved.plan, context),
+          appliedFilters: resolved.plan,
+          plannerSource: planned.source || 'planner',
+          sqlPreview: '',
+          sqlValues: [],
+          sqlDebug: '',
+          rows: [],
+          rowCount: 0,
+          totalCount: 0,
+          first: Number(first || 0),
+          rowsPerPage: Number(rows || 25)
+        },
+        { headers: buildCorsHeaders(request) }
+      );
+    }
+
     const query = buildOrderListQuery({
       context,
-      plan: planned.plan,
+      plan: resolved.plan,
       requestScope: {
         marketplaceUserId,
         userRole
@@ -77,8 +144,9 @@ export async function POST(request) {
     return NextResponse.json(
       {
         ok: true,
-        summary: summarizeAppliedFilters(planned.plan, context),
-        appliedFilters: planned.plan,
+        summary: summarizeAppliedFilters(resolved.plan, context),
+        appliedFilters: resolved.plan,
+        plannerSource: planned.source || 'planner',
         sqlPreview: result.sql,
         sqlValues: query.values,
         sqlDebug: renderDebugSql(result.sql, query.values),

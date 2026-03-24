@@ -6,7 +6,8 @@
   "tables": {
     "jobs": "tb_jobs",
     "payments": "tb_job_payment_details",
-    "storefronts": "tb_marketplace_storefronts"
+    "storefronts": "tb_marketplace_storefronts",
+    "vendors": "tb_vendors"
   },
   "joins": [
     {
@@ -27,6 +28,8 @@
     "job_id": "tb_jobs.job_id",
     "order_id": "tb_jobs.order_id",
     "customer_id": "tb_jobs.customer_id",
+    "customer_email": "tb_vendors.email",
+    "customer_phone": "tb_vendors.phone_no",
     "marketplace_user_id": "tb_jobs.marketplace_user_id",
     "merchant_user_id": "tb_jobs.user_id",
     "job_status": "tb_jobs.job_status",
@@ -66,6 +69,8 @@
   ],
   "allowedFilters": [
     "customer_id",
+    "customer_email",
+    "customer_phone",
     "job_id",
     "order_id",
     "marketplace_user_id",
@@ -83,7 +88,8 @@
     "lte",
     "between",
     "starts_with",
-    "contains"
+    "contains",
+    "in"
   ],
   "statusMap": {
     "pending": 9,

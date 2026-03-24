@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "updatedAt": null,
+  "confirmedMappings": [
+    {
+      "entity": "orders",
+      "phrase": "created date",
+      "field": "creation_datetime",
+      "table": "tb_jobs",
+      "column": "creation_datetime",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "amount",
+      "field": "total_amount",
+      "table": "tb_job_payment_details",
+      "column": "total_amount",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "customer id",
+      "field": "customer_id",
+      "table": "tb_jobs",
+      "column": "customer_id",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "customer email",
+      "field": "customer_email",
+      "table": "tb_vendors",
+      "column": "email",
+      "resolutionField": "vendor_id",
+      "resolvedTo": "tb_jobs.customer_id",
+      "scope": "marketplace_user_id",
+      "match": "exact",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "customer phone",
+      "field": "customer_phone",
+      "table": "tb_vendors",
+      "column": "phone_no",
+      "resolutionField": "vendor_id",
+      "resolvedTo": "tb_jobs.customer_id",
+      "scope": "marketplace_user_id",
+      "match": "exact",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "created from web",
+      "field": "created_by",
+      "value": [
+        12
+      ],
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "created from android",
+      "field": "created_by",
+      "value": [
+        10,
+        14
+      ],
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "created from ios",
+      "field": "created_by",
+      "value": [
+        11,
+        13
+      ],
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "exact count",
+      "policy": "exact_total_count",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "approved examples scope",
+      "policy": "global",
+      "confirmedBy": "user"
+    },
+    {
+      "entity": "orders",
+      "phrase": "or logic",
+      "policy": "same_field_only",
+      "confirmedBy": "user"
+    }
+  ],
+  "approvedExamples": [
+    {
+      "prompt": "find me all orders who's order amount is greater then 1000",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          {
+            "field": "total_amount",
+            "operator": "gt",
+            "value": 1000
+          }
+        ]
+      }
+    },
+    {
+      "prompt": "find me orders created after 1 feb from web",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          {
+            "field": "created_by",
+            "operator": "in",
+            "value": [
+              12
+            ]
+          },
+          {
+            "field": "creation_datetime",
+            "operator": "gte",
+            "value": "2026-02-01 00:00:00"
+          }
+        ]
+      }
+    },
+    {
+      "prompt": "find me completed or cancelled orders",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          {
+            "field": "job_status",
+            "operator": "in",
+            "value": [
+              13,
+              15
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "prompt": "find me orders from web or ios",
+      "plan": {
+        "entity": "orders",
+        "filters": [
+          {
+            "field": "created_by",
+            "operator": "in",
+            "value": [
+              11,
+              12,
+              13
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "performanceHints": [
+    "Always apply marketplace_user_id first.",
+    "Prefer creation_datetime for date windows.",
+    "Use created_by for source filters.",
+    "Use total_amount only when amount filter is requested because it requires the payments join.",
+    "Resolve customer email or phone in tb_vendors first, scoped by marketplace_user_id, before querying tb_jobs.",
+    "Keep exact total count separate from paginated row fetch."
+  ]
+}

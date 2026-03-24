@@ -65,6 +65,10 @@ This platform is an internal engineering copilot for YELO teams. It:
   - seeded with confirmed YELO mappings already taught during setup
   - V2 SQL confirmations persist runtime-confirmed mappings through `POST /api/memory/teach`
   - backend SQL agent can reuse learned facts as a table recommendation source
+- Order-list memory:
+  - stores page-scoped approved examples, confirmed mappings, and performance hints at `data/memory/order-list-memory.json`
+  - is merged into `order-list-context.json` at runtime
+  - approved examples are checked before LLM planning, so repeated prompts can resolve deterministically
 - API key auth and request audit logging.
 - Eval runner for citation/structure/safety checks.
 

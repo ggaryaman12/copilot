@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "updatedAt": "2026-03-10T00:00:00.000Z",
+  "facts": [
+    {
+      "key": "orders.jobs",
+      "entity": "orders",
+      "aliases": ["order", "orders", "job", "jobs"],
+      "table": "tb_jobs",
+      "columns": {
+        "userId": "marketplace_user_id",
+        "createdAt": "creation_datetime"
+      },
+      "source": "user-confirmed",
+      "notes": "Marketplace customer order lookups use tb_jobs with marketplace_user_id and creation_datetime.",
+      "updatedAt": "2026-03-10T00:00:00.000Z"
+    },
+    {
+      "key": "stores.storefronts",
+      "entity": "stores",
+      "aliases": ["store", "stores", "storefront", "storefronts", "merchant", "merchants"],
+      "table": "tb_marketplace_storefronts",
+      "columns": {
+        "name": "store_name"
+      },
+      "source": "code-verified",
+      "notes": "Storefront lookups can use tb_marketplace_storefronts.store_name.",
+      "updatedAt": "2026-03-10T00:00:00.000Z"
+    },
+    {
+      "key": "stores.form_settings",
+      "entity": "stores",
+      "aliases": ["form", "forms", "store settings"],
+      "table": "tb_form_settings",
+      "columns": {
+        "name": "form_name"
+      },
+      "source": "user-and-code-confirmed",
+      "notes": "When user explicitly asks from tb_form_settings, use form_name for prefix lookups.",
+      "updatedAt": "2026-03-10T00:00:00.000Z"
+    },
+    {
+      "key": "cities.marketplace",
+      "entity": "cities",
+      "aliases": ["city", "cities"],
+      "table": "tb_marketplace_cities",
+      "columns": {
+        "name": "name"
+      },
+      "source": "code-verified",
+      "notes": "City lookups use tb_marketplace_cities.name.",
+      "updatedAt": "2026-03-10T00:00:00.000Z"
+    }
+  ]
+}

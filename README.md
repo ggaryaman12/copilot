@@ -53,6 +53,11 @@ This platform is an internal engineering copilot for YELO teams. It:
   - captures full schema + yelo-server table hints
   - stores memory at `data/memory/schema-memory.json`
   - surfaces follow-up confirmation questions for ambiguous tables
+- Learned memory:
+  - stores user-confirmed entity -> table/column facts at `data/memory/learned-memory.json`
+  - seeded with confirmed YELO mappings already taught during setup
+  - V2 SQL confirmations persist runtime-confirmed mappings through `POST /api/memory/teach`
+  - backend SQL agent can reuse learned facts as a table recommendation source
 - API key auth and request audit logging.
 - Eval runner for citation/structure/safety checks.
 
@@ -111,6 +116,7 @@ npm run eval:run
 - `POST /api/db/query`
 - `POST /api/db/explain`
 - `POST /api/db/snapshot`
+- `POST /api/memory/teach`
 - `POST /api/eval/run`
 - `GET /api/health`
 
@@ -120,6 +126,7 @@ npm run eval:run
 - SQL is enforced as read-only in middleware (`SELECT`/`EXPLAIN` only).
 - If embedding model is unavailable, retrieval falls back to lexical mode (no 500 crash).
 - Audit logs are appended to `data/audit.log` as JSON lines.
+- Learned memory is durable on disk. Restarting the app does not remove confirmed mappings unless `data/memory/learned-memory.json` is edited or deleted.
 
 ## Training Roadmap
 
